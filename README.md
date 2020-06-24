@@ -7,7 +7,8 @@ Scripts used for data analysis and figures of Remy et al. 2020
 
 The data files are here for illustration only. The fully documented dataset can be found at [XXX].
 
->Code tested using following versions of software and packages:
+
+Code tested using following versions of software and packages:
 >R version 4.0.1 (2020-06-06)
 >
 >SIBER_2.1.5   
