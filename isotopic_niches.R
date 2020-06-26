@@ -435,7 +435,7 @@ read_pptx() %>%
   invisible()
 
 #This is a random plot just to get a legend. I then used powerpoint to piece it back on the main figure.
-#There's probably a much more elegant way to do that. Drop me a line if you know one.
+#There's a more elegant way to do that in the other script from this repository
 plotLeg <- ggplot(FiveSpAug, aes(x=iso1, y=iso2, group=factor(group))) +
   theme_bw() +
   geom_point(aes(shape=factor(group), color=factor(group)), size=2) +

@@ -1,16 +1,15 @@
+#Load necessary packages
 library(simmr)
 library(ggplot2)
-library(gdata)
 library(officer)
 library(rvg)
 library(magrittr)
 library(devEMF)
 library(cowplot)
-library(hdrcde)
 
 
-#1D Model (d13C only) for primary consumers & omnivores
-#Read in the data
+#Run a 1D mixing Model (d13C only) for the five dominant consumer species
+#Read in the data and separate consumers and food sources by season
 consumers_1D <- read.csv("input_consumers.csv",header=TRUE)
 consumers_1D_01Aug <- consumers_1D[consumers_1D$Season=="01_august",]
 consumers_1D_02Nov <- consumers_1D[consumers_1D$Season=="02_November",]
@@ -24,6 +23,7 @@ sources_1D_04May <- sources_1D[sources_1D$Season=="04_may",]
 TEFs_1D <- read.csv("TEF_primary.csv",header=TRUE)
 
 #Model for August
+#Turn data in a simmr object
 simmr1D_input_01Aug = simmr_load(mixtures=as.matrix(consumers_1D_01Aug[,4]),
                         group=as.character(consumers_1D_01Aug$Species),
                         source_names=as.character(sources_1D_01Aug$Source),
@@ -32,8 +32,11 @@ simmr1D_input_01Aug = simmr_load(mixtures=as.matrix(consumers_1D_01Aug[,4]),
                         correction_means=as.matrix(TEFs_1D$meand13C),
                         correction_sds=as.matrix(TEFs_1D$SDd13C),
                         concentration_means = NULL)
-plot(simmr1D_input_01Aug, group=1:5, xlab=expression(paste(delta^13, "C (\u2030)",sep=""))) 
+
+#Run the model 
 model1D_01Aug = simmr_mcmc(simmr1D_input_01Aug,  mcmc_control = list(iter = 100000, burn = 10000, thin = 100, n.chain = 4))
+
+#Save its output
 save(model1D_01Aug, file="model1D_01Aug.rdata")
 
 #Model for November
@@ -45,7 +48,6 @@ simmr1D_input_02Nov = simmr_load(mixtures=as.matrix(consumers_1D_02Nov[,4]),
                                  correction_means=as.matrix(TEFs_1D$meand13C),
                                  correction_sds=as.matrix(TEFs_1D$SDd13C),
                                  concentration_means = NULL)
-plot(simmr1D_input_02Nov, group=1:5, xlab=expression(paste(delta^13, "C (\u2030)",sep=""))) 
 model1D_02Nov = simmr_mcmc(simmr1D_input_02Nov,  mcmc_control = list(iter = 100000, burn = 10000, thin = 100, n.chain = 4))
 save(model1D_02Nov, file="model1D_02Nov.rdata")
 
@@ -58,7 +60,6 @@ simmr1D_input_03Mar = simmr_load(mixtures=as.matrix(consumers_1D_03Mar[,4]),
                                  correction_means=as.matrix(TEFs_1D$meand13C),
                                  correction_sds=as.matrix(TEFs_1D$SDd13C),
                                  concentration_means = NULL)
-plot(simmr1D_input_03Mar, group=1:5, xlab=expression(paste(delta^13, "C (\u2030)",sep=""))) 
 model1D_03Mar = simmr_mcmc(simmr1D_input_03Mar,  mcmc_control = list(iter = 100000, burn = 10000, thin = 100, n.chain = 4))
 save(model1D_03Mar, file="model1D_03Mar.rdata")
 
@@ -71,12 +72,11 @@ simmr1D_input_04May = simmr_load(mixtures=as.matrix(consumers_1D_04May[,4]),
                                  correction_means=as.matrix(TEFs_1D$meand13C),
                                  correction_sds=as.matrix(TEFs_1D$SDd13C),
                                  concentration_means = NULL)
-plot(simmr1D_input_04May, group=1:5, xlab=expression(paste(delta^13, "C (\u2030)",sep=""))) 
 model1D_04May = simmr_mcmc(simmr1D_input_04May,  mcmc_control = list(iter = 100000, burn = 10000, thin = 100, n.chain = 4))
 save(model1D_04May, file="model1D_04May.rdata")
 
-#Mega plot with the diet of all species - detailed density plot
-#Extract & plot data for Melita hergensis
+#Produce a density plot like the one of figure 5
+#Extract data for Melita hergensis
 Melitaoutput <- c(model1D_01Aug$output$`MH`$BUGSoutput$sims.list$p[,'DL'],
                   model1D_01Aug$output$`MH`$BUGSoutput$sims.list$p[,'Epi'],
                   model1D_01Aug$output$`MH`$BUGSoutput$sims.list$p[,'RAM'],
@@ -93,6 +93,8 @@ Melitaoutput <- c(model1D_01Aug$output$`MH`$BUGSoutput$sims.list$p[,'DL'],
                   model1D_04May$output$`MH`$BUGSoutput$sims.list$p[,'Epi'],
                   model1D_04May$output$`MH`$BUGSoutput$sims.list$p[,'RAM'],
                   model1D_04May$output$`MH`$BUGSoutput$sims.list$p[,'SOM'])
+
+#Put it in a data frame that can be used by ggplot
 DetailedSeasonsNames <- c(rep("2011/08", length(model1D_01Aug$output$`MH`$BUGSoutput$sims.list$p[,'DL'])),
                           rep("2011/08", length(model1D_01Aug$output$`MH`$BUGSoutput$sims.list$p[,'Epi'])),
                           rep("2011/08", length(model1D_01Aug$output$`MH`$BUGSoutput$sims.list$p[,'RAM'])),
@@ -126,6 +128,8 @@ PrimarySourcesNames <- c(rep("DL", length(model1D_01Aug$output$`MH`$BUGSoutput$s
                          rep("RAM", length(model1D_04May$output$`MH`$BUGSoutput$sims.list$p[,'RAM'])),
                          rep("SOM", length(model1D_04May$output$`MH`$BUGSoutput$sims.list$p[,'SOM'])))
 Melita <- data.frame(Melitaoutput, DetailedSeasonsNames, PrimarySourcesNames)
+
+#Make a density plot using ggplot
 MelitaPlot <- ggplot(Melita, aes(x = Melitaoutput, colour = PrimarySourcesNames, fill = PrimarySourcesNames)) + 
   geom_density(alpha=0.6) + 
   theme_bw() +
@@ -210,7 +214,7 @@ GammarusPlot <-ggplot(Gammarus, aes(x = Gammarusoutput, colour = PrimarySourcesN
   coord_cartesian(clip = "off")
 GammarusPlot
 
-#Extract data for Athanas nitescens
+#Extract & plot data for Athanas nitescens
 Athanasoutput <- c(model1D_01Aug$output$`AN`$BUGSoutput$sims.list$p[,'DL'],
                     model1D_01Aug$output$`AN`$BUGSoutput$sims.list$p[,'Epi'],
                     model1D_01Aug$output$`AN`$BUGSoutput$sims.list$p[,'RAM'],
@@ -244,7 +248,7 @@ AthanasPlot <-ggplot(Athanas, aes(x = Athanasoutput, colour = PrimarySourcesName
   coord_cartesian(clip = "off")
 AthanasPlot
 
-#Extract data for Palaemon xiphias
+#Extract & plot data for Palaemon xiphias
 Palaemonoutput <- c(model1D_01Aug$output$`PX`$BUGSoutput$sims.list$p[,'DL'],
                    model1D_01Aug$output$`PX`$BUGSoutput$sims.list$p[,'Epi'],
                    model1D_01Aug$output$`PX`$BUGSoutput$sims.list$p[,'RAM'],
@@ -279,7 +283,7 @@ PalaemonPlot <-ggplot(Palaemon, aes(x = Palaemonoutput, colour = PrimarySourcesN
 PalaemonPlot
 
 
-#Combine in a big graph and export to ppt
+#Combine all that in a big graph with a separate legend
 Megaplot <- plot_grid(MelitaPlot + theme(legend.position="none"),
                       GammarellaPlot + theme(legend.position="none"),
                       GammarusPlot + theme(legend.position="none"), 
@@ -287,20 +291,22 @@ Megaplot <- plot_grid(MelitaPlot + theme(legend.position="none"),
                       PalaemonPlot + theme(legend.position="none"), 
                       ncol=1)
 Megaplot
-
 legend_b <- get_legend(
   PalaemonPlot + 
     theme(legend.position = "bottom"))
 Megaplot_legend <- plot_grid(Megaplot, legend_b, ncol = 1, rel_heights = c(1, .1))
+Megaplot_legend
 
+#Export it to powerpoint for easy tweaking of small details and integration into manuscript document
+Megaplot_legend_export <- dml(ggobj = Megaplot_legend)
 read_pptx() %>% 
   add_slide(layout = "Title and Content", master = "Office Theme") %>% 
-  ph_with_vg(code = print(Megaplot_legend), width=10, height=12,type = "body") %>% 
+  ph_with(value=Megaplot_legend_export, location = ph_location(width=10, height=12, type = "body") ) %>% 
   print(target = "Megaplot.pptx") %>% 
   invisible()
 
-
-#Extract confidence interval limits
+#Extract confidence interval limits and modes of models' posterior probability density functions
+summary(model1D_01Aug,type="quantiles", group=c(1:5))
 summary(model1D_01Aug,type="quantiles", group=c(1:5))
 summary(model1D_02Nov,type="quantiles", group=c(1:5))
 summary(model1D_03Mar,type="quantiles", group=c(1:5))
@@ -390,3 +396,5 @@ modelmodes <- rbind(mode(model1D_01Aug$output$`AN`$BUGSoutput$sims.list$p[,'DL']
                     mode(model1D_04May$output$`PX`$BUGSoutput$sims.list$p[,'RAM'])
                     )
 print(round(modelmodes, 4))
+
+#End of script
