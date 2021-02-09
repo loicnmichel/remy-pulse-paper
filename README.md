@@ -1,5 +1,5 @@
 # remy-pulse-paper
-Scripts used for data analysis and figures of Remy et al. 2020
+Scripts used for data analysis and figures of the paper entitled "Trophic ecology of macrofauna inhabiting seagrass litter accumulations is related to dead leaves pulses", by Remy, Michel et al. (2021)
 
 "isotopic_niches.R" contains code for isotopic niche analysis using SIBER and figures 3 and 4.
 
