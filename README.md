@@ -1,11 +1,11 @@
 # remy-pulse-paper
-Scripts used for data analysis and figures of the paper entitled "Trophic ecology of macrofauna inhabiting seagrass litter accumulations is related to dead leaves pulses", by Remy, Michel et al. (2021)
+Scripts used for data analysis and figures of the paper "Trophic ecology of macrofauna inhabiting seagrass litter accumulations is related to the pulses of dead leaves", by Remy, Michel, Mascart, De Troch & Lepoint (2021); Estuarine, Coastal and Shelf Science 252: 107300. https://doi.org/10.1016/j.ecss.2021.107300
 
 "isotopic_niches.R" contains code for isotopic niche analysis using SIBER and figures 3 and 4.
 
 "mixing_model.R" contains code for running a stable isotope mixing model using simmr and figure 5.
 
-The data files are here for illustration only. The fully documented dataset can be found at [XXX].
+The data files are here for illustration only. The fully documented dataset can be found at https://doi.org/10.14284/454.
 
 
 Code tested using the following versions of software and packages:
